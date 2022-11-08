@@ -14,6 +14,7 @@ class DwReceiver : BroadcastReceiver() {
     }
 
     private fun setActive(a: Boolean) {
+        Log.d("DwReceiver", "$a")
         this.listener?.apply { dwReceiverActive = a }
     }
 
@@ -22,7 +23,6 @@ class DwReceiver : BroadcastReceiver() {
         //  Notify registered observers
 //        ObservableObject.instance.updateValue(intent)
         Log.d("DwReceiver", "Logging")
-        setActive(false)
         if (intent.action.equals(DwInterface.NOTIFICATION_ACTION)) {
 
             if(intent.hasExtra(DwInterface.DATAWEDGE_NOTIFICATION)) {
@@ -64,7 +64,7 @@ class DwReceiver : BroadcastReceiver() {
 //                    }
 //                }
 //            }
-        }
+        } else setActive(false)
         Log.d("DwReceiver", "Logging after")
     }
 }

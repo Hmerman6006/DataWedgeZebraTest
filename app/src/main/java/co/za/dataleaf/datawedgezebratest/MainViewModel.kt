@@ -17,17 +17,12 @@ enum class ScannerStatus {
     DISABLED,
     UNKNOWN
 }
-class MainViewModel() : ViewModel(), OnReceiverListenerInterface {
+class MainViewModel() : ViewModel() {
     private val _unknown = "NO SCANNER"
     private val _status = MutableStateFlow<String>(_unknown)
     val status = _status.asStateFlow()
     private var _dwScannerActive = MutableStateFlow<Boolean>(true)
     val dwScannerActive = _dwScannerActive.asStateFlow()
-    override fun onReceivingScannerStatusBroadcast(status: String) {
-        TODO("Not yet implemented")
-    }
-
-    override var dwReceiverActive: Boolean = false
 
     fun getStatus(): ScannerStatus {
         return if(_status.value == "WAITING") {
@@ -66,6 +61,6 @@ class MainViewModel() : ViewModel(), OnReceiverListenerInterface {
     }
 
     fun isDwScannerUnavailable(): Boolean {
-        return (((getStatus() != ScannerStatus.UNKNOWN) && dwReceiverActive))
+        return (getStatus() != ScannerStatus.UNKNOWN)
     }
 }

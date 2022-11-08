@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity(), OnReceiverListenerInterface {
                     Log.i(TAG, viewModel.isDwScannerUnavailable().toString())
                     Log.i(TAG, viewModel.getStatus().toString())
                     Log.i(TAG, "${(!dwReceiverActive)}  ${(viewModel.getStatus() == ScannerStatus.UNKNOWN)}")
-                    if (!viewModel.isDwScannerUnavailable()) {
+                    if (!viewModel.isDwScannerUnavailable() && !dwReceiverActive) {
                         viewModel.reactToInactiveDwScanner()
                     }
                 }
