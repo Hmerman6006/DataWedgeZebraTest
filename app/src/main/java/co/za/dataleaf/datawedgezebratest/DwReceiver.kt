@@ -8,15 +8,13 @@ import android.util.Log
 
 class DwReceiver : BroadcastReceiver() {
     private var listener: OnReceiverListenerInterface? = null
-    val NOTIFICATION_ACTION = "com.symbol.datawedge.api.NOTIFICATION_ACTION"
-    val NOTIFICATION_TYPE_SCANNER_STATUS = "SCANNER_STATUS"
-    val NOTIFICATION_TYPE_PROFILE_SWITCH = "PROFILE_SWITCH"
-    val NOTIFICATION_TYPE_CONFIGURATION_UPDATE = "CONFIGURATION_UPDATE"
-    val DATAWEDGE_NOTIFICATION = "com.symbol.datawedge.api.NOTIFICATION"
-    val DATAWEDGE_NOTIFICATION_TYPE = "NOTIFICATION_TYPE"
 
     fun setOnReceiverListenerInterface(context: Context) {
         this.listener = context as OnReceiverListenerInterface
+    }
+
+    private fun setActive(a: Boolean) {
+        this.listener?.apply { dwReceiverActive = a }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -24,7 +22,9 @@ class DwReceiver : BroadcastReceiver() {
         //  Notify registered observers
 //        ObservableObject.instance.updateValue(intent)
         Log.d("DwReceiver", "Logging")
+        setActive(false)
         if (intent.action.equals(DwInterface.NOTIFICATION_ACTION)) {
+
             if(intent.hasExtra(DwInterface.DATAWEDGE_NOTIFICATION)) {
                 val b: Bundle? = intent.getBundleExtra(DwInterface.DATAWEDGE_NOTIFICATION)
                 val t: String? = b?.getString(DwInterface.DATAWEDGE_NOTIFICATION_TYPE)
@@ -35,6 +35,7 @@ class DwReceiver : BroadcastReceiver() {
                             val scannerStatus = b.getString("STATUS")
                             Log.d("DwReceiver", "STATUS: ${b.getString("STATUS")} PROFILE: ${b.getString("PROFILE_NAME")}")
                             if (scannerStatus != null) {
+                                setActive(true)
                                 this.listener?.apply {
                                     onReceivingScannerStatusBroadcast(scannerStatus)
                                 }

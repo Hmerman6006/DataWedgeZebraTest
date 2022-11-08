@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 
-object DWUtilities {
+object DwUtilities {
     val code39 = true
     val code128 = true
     val ean8 = true

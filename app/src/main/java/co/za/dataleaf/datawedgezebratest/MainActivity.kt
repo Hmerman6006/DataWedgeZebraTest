@@ -10,13 +10,16 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import co.za.dataleaf.datawedgezebratest.databinding.ActivityMainBinding
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity(), OnReceiverListenerInterface {
     private lateinit var binding: ActivityMainBinding
+    private lateinit var dialog: ShowRoundDialogFragment
     private val dwInterface = DwInterface()
     private val receiver = DwReceiver()
+    override var dwReceiverActive: Boolean = false
 
     private val viewModel: MainViewModel by viewModels()
 
@@ -26,6 +29,7 @@ class MainActivity : AppCompatActivity(), OnReceiverListenerInterface {
         const val PROFILE_INTENT_ACTION = "co.za.dataleaf.datawedgezebratest.SCAN"
         const val PROFILE_INTENT_START_ACTIVITY = "0"
         const val SCAN_HISTORY_FILE_NAME = "ScanHistory"
+        const val LOADER = "bottom_sheet_dialog"
     }
 
     override fun onReceivingScannerStatusBroadcast(status: String) {
@@ -37,13 +41,52 @@ class MainActivity : AppCompatActivity(), OnReceiverListenerInterface {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        DWUtilities.CreateDWProfile(this)
+        DwUtilities.CreateDWProfile(this)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 viewModel.status.collectLatest {
+
                     binding.tvScannerStatus.text = it
+                    Log.i(TAG, viewModel.isDwScannerUnavailable().toString())
+                    Log.i(TAG, viewModel.getStatus().toString())
+                    Log.i(TAG, "${(!dwReceiverActive)}  ${(viewModel.getStatus() == ScannerStatus.UNKNOWN)}")
+                    if (!viewModel.isDwScannerUnavailable()) {
+                        viewModel.reactToInactiveDwScanner()
+                    }
                 }
             }
+        }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.dwScannerActive.collectLatest {
+                    Log.i(TAG, viewModel.getStatus().toString())
+                    if(!it) {
+                        setDialog()
+//                        Snackbar.make(
+//                            this@MainActivity,
+//                            binding.root,
+//                            "No datawedge scanner service encountered. Do you want to switch to camera scanner?",
+//                            Snackbar.LENGTH_INDEFINITE
+//                        ).setAction("Yes") {
+//                            Log.i(TAG, "Set camera as default scanner ...")
+//                        }.show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setDialog() {
+        if(::dialog.isInitialized) {
+            val s = dialog.dialog?.isShowing == true
+            if (!dialog.isAdded) {
+                dialog.show(supportFragmentManager, LOADER)
+                return
+            }
+            if (!s) dialog.dialog?.show()
+        } else {
+            dialog = DialogHelper.bottomShowRoundDialogBuild()
+            dialog.show(supportFragmentManager, LOADER)
         }
     }
 
@@ -66,7 +109,7 @@ class MainActivity : AppCompatActivity(), OnReceiverListenerInterface {
                 binding.tvBarcode.text = it
             }
             Log.d(TAG, "Logging after")
-        }
+        } else Log.d(TAG, "No extra after")
 
     }
 
@@ -78,6 +121,7 @@ class MainActivity : AppCompatActivity(), OnReceiverListenerInterface {
         i.action = DwInterface.DATAWEDGE_SEND_ACTION
         i.putExtra("com.symbol.datawedge.api.REGISTER_FOR_NOTIFICATION", b)
         this.sendBroadcast(i)
+        Log.d("scannerStatus", "Logging 2")
 //        val i = Intent()
 //        i.setAction(DwInterface.DATAWEDGE_SEND_ACTION);
 //        i.putExtra(DwInterface.DATAWEDGE_SCANNER_GET_STATUS,"");
